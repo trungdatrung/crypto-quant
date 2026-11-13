@@ -1,0 +1,60 @@
+name: Paper trading
+
+on:
+  schedule:
+    - cron: "5 */4 * * *" # five minutes after each 4h bar closes (UTC); 1d bars close at 00:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write # pushes the log to the `paper-log` branch (never to `main`)
+
+concurrency:
+  group: paper-trading
+  cancel-in-progress: false
+
+jobs:
+  signal:
+    name: Log signals
+    # Scheduled runs belong to the main repository only; forks would produce diverging logs.
+    if: github.repository == 'the-daonm/crypto-quant' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: pip install -e .
+
+      - name: Check out the log branch into paper/
+        run: |
+          if git fetch origin paper-log:refs/remotes/origin/paper-log; then
+            git worktree add -B paper-log paper origin/paper-log
+          else
+            git worktree add --orphan -b paper-log paper   # first run: start an empty branch
+          fi
+
+      - name: Compute and log the signals
+        id: signal
+        continue-on-error: true # still commit the rows that succeeded; the last step fails the job
+        run: python -m cq.signal --log paper/log.csv
+
+      - name: Commit and push the log
+        working-directory: paper
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add log.csv
+          if git diff --cached --quiet; then
+            echo "No new bars to log."
+          else
+            git commit -m "Log paper-trading signals $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push origin paper-log
+          fi
+
+      - name: Fail if any pair could not be logged
+        if: steps.signal.outcome == 'failure'
+        run: |
+          echo "::error::At least one pair failed or returned stale data; see the 'Compute and log the signals' step."
+          exit 1
