@@ -17,3 +17,5 @@ Generated from the docstrings in `src/cq/`.
 ::: cq.metrics
 
 ::: cq.pipeline
+
+::: cq.signal

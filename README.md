@@ -25,6 +25,7 @@ pytest                                                 # 13 tests: look-ahead, b
 python -m cq.pipeline --symbol BTC/USDT --tf 1d        # full-period + design/holdout metrics, CSVs in results/
 python -m cq.pipeline --symbol ETH/USDT --tf 4h --horizon 1 --band 0   # reproduce the original v1 setup
 streamlit run app.py                                   # dashboard at http://localhost:8501
+python -m cq.signal                                    # paper trading: log today's signal to paper/log.csv
 jupyter notebook notebooks/eda.ipynb                   # EDA and results analysis
 ```
 
@@ -50,12 +51,16 @@ The repository contains no raw data; data is used for educational purposes only.
 | Design / holdout | The configuration was selected **only on data before 2025-01-01**; 2025 onwards is a holdout evaluated once |
 | Metrics (`metrics.py`) | Accuracy, AUC, F1 · total return, CAGR, Sharpe, max drawdown, exposure, win rate, number of trades |
 
+**Paper trading** (`signal.py`): after each bar closes, the model's signal is logged before the future is known,
+on a schedule, with retries, a marked cache fallback and idempotent runs. See [docs/paper-trading.md](docs/paper-trading.md).
+
 The test suite in `tests/` checks that:
 - corrupting future data never changes past features;
 - multi-bar labels are aligned correctly while the backtest still uses 1-bar returns;
 - always-long with zero fees reproduces Buy & Hold exactly, and fees are charged once per position change;
 - hysteresis holds the position inside the band and reduces trading;
-- walk-forward folds never overlap and respect the embargo.
+- walk-forward folds never overlap and respect the embargo;
+- the paper-trading log reproduces the backtest bar by bar and never logs the same bar twice.
 
 ## Results (out-of-sample, 0.1% fee, data up to Nov 2026)
 
@@ -111,8 +116,9 @@ See the [issue tracker](https://github.com/the-daonm/crypto-quant/issues) for pl
 ## Project layout
 
 ```
-src/cq/        data · features · labels · models · validation · backtest · metrics · pipeline
+src/cq/        data · features · labels · models · validation · backtest · metrics · pipeline · signal
 app.py         Streamlit dashboard
+pages/         extra dashboard pages (paper trading)
 notebooks/     EDA and results analysis
 docs/          GIAI-THICH.md: beginner explainer (Vietnamese)
 tests/         pytest suite

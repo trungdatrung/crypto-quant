@@ -30,6 +30,7 @@ streamlit run app.py                              # dashboard at http://localhos
 | Backtest | [`cq.backtest`](api.md#cq.backtest) | Long/flat positions with a hysteresis band and fees |
 | Metrics | [`cq.metrics`](api.md#cq.metrics) | Accuracy, AUC, Sharpe, max drawdown, … |
 | Pipeline | [`cq.pipeline`](api.md#cq.pipeline) | Runs everything end to end; design/holdout reporting |
+| Paper trading | [`cq.signal`](api.md#cq.signal) | Logs the signal for the last closed bar; see [Paper trading](paper-trading.md) |
 
 ## Key results
 

@@ -23,6 +23,7 @@ theme:
 
 nav:
   - Home: index.md
+  - Paper trading: paper-trading.md
   - API reference: api.md
   - Contributing: contributing.md
   - Changelog: changelog.md

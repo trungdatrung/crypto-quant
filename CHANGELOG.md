@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 - Auto-merge for Dependabot patch and minor updates after CI passes; major updates still need a review.
+- Paper trading (#10): `python -m cq.signal` logs the signal for the last closed bar to `paper/log.csv`, with
+  retries, a marked cache fallback, idempotent runs and a failure on stale data; a scheduled workflow publishes
+  the log to the `paper-log` branch; a *Paper trading* dashboard page shows the equity against Buy & Hold.
 
 ## [0.2.0] - 2026-11-12
 
